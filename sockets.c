@@ -35,12 +35,12 @@ int receive(int sockfd, struct packet* pckt) {
         
         int recv_size = recvfrom(
             sockfd,(void*)packet_buffer,
-            sizeof(packet_buffer),0,
+            BUFF_SIZE,0,
             (struct sockaddr*)sender_address,&len
         );
         
         if(recv_size<0) {
-            recv_size;
+            return recv_size;
         }
         
         char* sender_ip_addr = inet_ntoa(sender_address->sin_addr);
