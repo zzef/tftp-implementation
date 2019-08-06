@@ -27,6 +27,16 @@ int bind_socket(int sockfd, char* ip_addr, int port) {
     
 }
 
+
+int send_data(int sockfd, struct sockaddr *address, char* data) {
+	
+	return sendto(sockfd,(const void*) data, sizeof(*data),0,
+					address,sizeof(*address)
+					);
+
+}
+
+
 int receive(int sockfd, struct packet* pckt) {
     
         struct sockaddr_in* sender_address = malloc(sizeof(struct sockaddr_in));
