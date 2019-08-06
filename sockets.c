@@ -7,9 +7,9 @@
 #include <string.h>
 #include "sockets.h"
 
-int bind_socket(int sockfd, char* ip_addr, int port) {
-    
-    struct in_addr* addr = malloc(sizeof(struct in_addr));
+struct sockaddr_in* prep_address(char* ip_addr, int port) {
+ 
+	struct in_addr* addr = malloc(sizeof(struct in_addr));
     
     if(ip_addr==NULL){
         addr->s_addr=INADDR_ANY;// bind to all local addresses
@@ -18,18 +18,26 @@ int bind_socket(int sockfd, char* ip_addr, int port) {
         inet_aton(ip_addr,addr);       
     }
     
-    struct sockaddr_in* server_address = malloc(sizeof(struct sockaddr_in));
-    server_address->sin_family=AF_INET;
-    server_address->sin_port=htons(port);
-    server_address->sin_addr=*addr;
+    struct sockaddr_in* address = malloc(sizeof(struct sockaddr_in));
+    address->sin_family=AF_INET;
+    address->sin_port=htons(port);
+    address->sin_addr=*addr;
     
-    return bind(sockfd, (const struct sockaddr*) server_address, sizeof(*server_address));
+	return address;
+
+}
+
+int bind_socket(int sockfd, char* ip_addr, int port) {
+    
+   	struct sockaddr_in* address = prep_address(ip_addr, port);
+    return bind(sockfd, (const struct sockaddr*) address, sizeof(*address));
     
 }
 
 
-int send_data(int sockfd, struct sockaddr *address, char* data) {
-	
+int send_data(int sockfd, char* ip_addr, int port, char* data) {
+
+	const struct sockaddr* address = (struct sockaddr*) prep_address(ip_addr,port); 
 	return sendto(sockfd,(const void*) data, sizeof(*data),0,
 					address,sizeof(*address)
 					);
