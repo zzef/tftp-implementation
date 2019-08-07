@@ -38,7 +38,7 @@ int bind_socket(int sockfd, char* ip_addr, int port) {
 int send_data(int sockfd, char* ip_addr, int port, char* data) {
 
 	const struct sockaddr* address = (struct sockaddr*) prep_address(ip_addr,port); 
-	return sendto(sockfd,(const void*) data, sizeof(*data),0,
+	return sendto(sockfd,(const void*) data, strlen(data)*sizeof(char),0,
 					address,sizeof(*address)
 					);
 
