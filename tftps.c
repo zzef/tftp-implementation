@@ -5,14 +5,8 @@
 #include <errno.h>
 #include <string.h>
 #include "sockets.h"
- 
-typedef char BYTE;
-
-BYTE a = 0x0;
 
 int main(int argc, char** argv) {
-    
-    char* IP_ADDRESS = argv[1];
     
     int sockfd = socket(AF_INET,SOCK_DGRAM,0);
     
@@ -23,7 +17,7 @@ int main(int argc, char** argv) {
         printf("Successfully created socket!\n");
     }
     
-    if (bind_socket(sockfd,IP_ADDRESS,PORT)<0) {
+    if (bind_socket(sockfd,NULL,PORT)<0) {
         printf("Error: Failed to bind socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
     } else {
@@ -39,7 +33,12 @@ int main(int argc, char** argv) {
             printf("Failed to receive packet - %s\n",strerror(errno));
         }
         else {
-            printf("Received: \"%s\" from [%s,%i] (%li bytes)\n",pckt->data,inet_ntoa(pckt->ip_addr),pckt->port,pckt->data_len);
+            printf("Received: \"%s\" from [%s,%i] (%li bytes)\n",
+							pckt->data,
+							inet_ntoa(pckt->ip_addr),
+							pckt->port,
+							pckt->data_len
+							);
         }
         
         
