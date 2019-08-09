@@ -7,9 +7,8 @@
 #include "sockets.h"
 
 int main(int argc, char** argv) {
-    
-    int sockfd = socket(AF_INET,SOCK_DGRAM,0);
-    
+   	 
+    int sockfd = socket(AF_INET,SOCK_DGRAM,0);  
     if (sockfd<0){
         printf("Error: Failed to create socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
