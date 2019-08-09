@@ -5,9 +5,10 @@
 #include <errno.h>
 #include <string.h>
 #include "sockets.h"
+#include "tftp_utils.h"
 
 int main(int argc, char** argv) {
-	
+		
 	char* IP_ADDRESS = argv[1];
 	
 	int sockfd = socket(AF_INET, SOCK_DGRAM,0);
@@ -16,8 +17,16 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     } else {
         printf("Successfully created socket!\n");
-    }
-    
-	send_data(sockfd,IP_ADDRESS,69,"HELLO BOYS AND GIRLS");	
+    } 
+	char* wrq;
+	
+	printf("yooo0\n");
 
+	int size = bake_wrq_pkt("test_file.txt","octet",&wrq);
+	
+	printf("> %s\n",wrq);
+	
+	send_data(sockfd,IP_ADDRESS,69,wrq,size);
+	
+	printf("yooo\n");
 }
