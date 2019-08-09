@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 	
 	printf("> %s\n",wrq);
 	
-	send_data(sockfd,IP_ADDRESS,69,wrq,size);
+	send_data(sockfd,IP_ADDRESS,TFTP_PORT,wrq,size);
 	
 	printf("yooo\n");
 }
