@@ -10,6 +10,6 @@ struct packet {
 };
 
 
-extern int send_data(int sockfd, char* ip_addr, int port, char* data);
+extern int send_data(int sockfd, char* ip_addr, int port, char* data, int size);
 extern int bind_socket(int sockfd, char* ip_addr, int port);
 extern int receive(int sockfd, struct packet* pckt);
