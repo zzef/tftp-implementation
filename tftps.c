@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string.h>
 #include "sockets.h"
+#include "packet_debug.h" 
 
 int main(int argc, char** argv) {
    	 
@@ -32,12 +33,15 @@ int main(int argc, char** argv) {
             printf("Failed to receive packet - %s\n",strerror(errno));
         }
         else {
-            printf("Received: \"%s\" from [%s,%i] (%li bytes)\n",
-							pckt->data,
-							inet_ntoa(pckt->ip_addr),
-							pckt->port,
-							pckt->data_len
-							);
+			printf("Recieved packet: \"");
+			print_pkt_data(pckt->data,pckt->data_len);
+			printf("\" from [%s,%i] (%li bytes)\n",
+					inet_ntoa(pckt->ip_addr),
+					pckt->port,
+					pckt->data_len
+					);
+	
+	
         }
         
         
