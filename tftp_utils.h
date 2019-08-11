@@ -6,4 +6,9 @@ struct wrt_rq {
 	char* mode;
 };
 
-extern int bake_wrq_pkt(char* file_name, char* mode, char** wrq);
+extern int bake_rq_pkt(const char rq, 
+						const char* file_name, 
+						const char* mode, char** wrq
+						);
+
+
