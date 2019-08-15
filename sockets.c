@@ -64,8 +64,8 @@ int receive(int sockfd, struct packet* pckt) {
         char* sender_ip_addr = inet_ntoa(sender_address->sin_addr);
         int port = sender_address->sin_port;
         
-        pckt->port=port;
-        pckt->ip_addr=sender_address->sin_addr;
+        pckt->port=ntohs(port);
+        pckt->ip_addr=sender_ip_addr;
         pckt->data=packet_buffer;
         pckt->data_len=recv_size;
         
