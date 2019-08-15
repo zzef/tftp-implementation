@@ -15,12 +15,12 @@ char to_hex(char h){
 		case(7):return '7';
 		case(8):return '8';
 		case(9):return '9';
-		case(10):return 'A';
-		case(11):return 'B';
-		case(12):return 'C';
-		case(13):return 'D';
-		case(14):return 'E';
-		case(15):return 'F';
+		case(10):return 'a';
+		case(11):return 'b';
+		case(12):return 'c';
+		case(13):return 'd';
+		case(14):return 'e';
+		case(15):return 'f';
 	}
 	
 }
@@ -38,10 +38,10 @@ char* conv_to_hex(char chr) {
 void print_pkt_data(char* pkt, int size) {
 	for (int i=0; i<size; i++) {
 		char chr = pkt[i];
-		if (chr>=0 && chr<=31 || chr==127) {
-			printf("%s",conv_to_hex(chr));
+		if (chr>=32 && chr<=126) {
+			printf("%c",chr);
 			continue;
 		}
-		printf("%c",chr);
+		printf("%s",conv_to_hex(chr));
 	}
 }
