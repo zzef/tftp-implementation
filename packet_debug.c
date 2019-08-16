@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define LINE_LEN 47
+
 char to_hex(char h){
 	
 	switch(h){
@@ -36,7 +38,12 @@ char* conv_to_hex(char chr) {
 }
 
 void print_pkt_data(char* pkt, int size) {
+
+	printf("  ");
 	for (int i=0; i<size; i++) {
+		if (i%LINE_LEN==0 && i>0) {
+			printf("\n  ");
+		}
 		char chr = pkt[i];
 		if (chr>=32 && chr<=126) {
 			printf("%c",chr);
