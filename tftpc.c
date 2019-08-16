@@ -113,7 +113,7 @@ int transfer(FILE* file, char* file_name, char* remote_host, char* mode, int rex
 		}
 		else {
 			last = get_block(file,f_size,T_BLOCK,&data,&len);
-			printf("\n\n  transferring block %i\n",T_BLOCK);
+			printf("\n\n  transferring block %i (%lu bytes)\n",T_BLOCK,len);
 			printf("  -------------------------------------------------\n");
 			print_pkt_data(data,len);
 			printf("\n  -------------------------------------------------\n");
