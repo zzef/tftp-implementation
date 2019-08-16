@@ -1,7 +1,8 @@
 #define TFTP_PORT 69
 #define INPUT_SIZE 1024
 #define BINARY "octet"
-#define ASCII "asciii"
+#define ASCII "ascii"
+#define MAX_TRANSFER 512
 
 struct wrt_rq {
 	char* opcode;
@@ -29,4 +30,8 @@ u_int16_t random_16(u_int16_t lower, u_int16_t upper);
 
 int connect_host(u_int16_t* TID);
 
+char* get_error_message(char code);
 
+char* concat(const void* a, int size_a,
+			 const void* b, int size_b, 
+		 	 int* len); 
