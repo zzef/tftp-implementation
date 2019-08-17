@@ -1,4 +1,4 @@
-#define BUFF_SIZE 512
+#define BUFF_SIZE 1024
 
 struct packet {
     int port;
