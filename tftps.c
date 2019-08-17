@@ -33,98 +33,48 @@ int main(int argc, char** argv) {
         printf("Error: Failed to create socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        printf("Successfully created socket!\n");
+        printf("Socket created\n");
     }
     
     if (bind_socket(sockfd,IP_ADDRESS,TFTP_PORT)<0) {
         printf("Error: Failed to bind socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        printf("Successfully binded socket!\n");
+        printf("Socket bound!\n");
     }
     
-	FILE* file;
-	long expected_block=1;
     printf("listening on port %i\n",TFTP_PORT);
-    while(1) {
-        
-        struct packet* pckt = malloc(sizeof(struct packet));
+	struct packet* pckt = malloc(sizeof(struct packet));
+    while(1) {     
 
         if(receive(sockfd,pckt)<0) {
             printf("Failed to receive packet - %s\n",strerror(errno));
         }
         else {
-	
-			printf("Received packet: \"");
-			print_pkt_data(pckt->data,pckt->data_len);
-			printf("\" from [%s,%i] (%li bytes)\n",
-					pckt->ip_addr,
-					pckt->port,
-					pckt->data_len
-					);
-
-			printf("---------------------------\n");
-			
+			display_packet(pckt);
+			printf("---------------------------\n");			
 			unsigned char* res = (unsigned char*) pckt->data;
 			if (*res=='\0'&&*(res+1)=='\2') {
 					
 				file_name = (pckt->data)+2;
-				int path_len = 0;
-				char* path = concat(PATH,strlen(PATH),
-						file_name,strlen(file_name),&path_len);
-
 				mode = (pckt->data)+strlen(pckt->data+2)+3;
-
-				if (strcmp(mode,BINARY)==0) {	
-					file = fopen(path,"wbx");
-					if (file==NULL) {
-						printf("error with file\n");
-						char *err_pkt;
-						char err_code = get_error_code(errno);
-						char *err_msg = "There was a problem fam.";
-						int size_err = bake_err_pkt(err_code,err_msg,strlen(err_msg),&err_pkt);
-						send_data(sockfd,pckt->ip_addr,pckt->port,err_pkt,size_err);	
-						continue;
-					}
-					else {
-						char *ack_pkt;	
-						int size_ack = bake_ack_pkt(0,&ack_pkt);	
-						send_data(sockfd,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
-						TID=pckt->port;
-						printf("%i\n",strlen(pckt->data+2));
-						printf("WRQ to %s (mode %s)\ntransmission identifier %i\n",path,mode,pckt->port);				
-					}
-				}
-			}
-			else if (*res=='\0'&&*(res+1)=='\3') {
-				u_int16_t* blk = (u_int16_t*) (pckt->data)+1;	
-				
-				printf("TID: %i\nPORT %i\n",TID,pckt->port);
-
-				if(pckt->port!=TID) {
-					char *err_pkt;
-					char err_code = 5;
-					char *err_msg = "There was a problem fam.";
-					int size_err = bake_err_pkt(err_code,err_msg,strlen(err_msg),&err_pkt);
-					send_data(sockfd,pckt->ip_addr,pckt->port,err_pkt,size_err);	
+				FILE* file = prepare_file(PATH,file_name,mode,"wx");
+	
+				if (file==NULL) {
+					printf("error with file\n");
+					send_client_error(sockfd,pckt->ip_addr,pckt->port,get_error_code(errno));
 					continue;
 				}
-
-				long block_n = ntohs(*blk);
-				if (block_n==expected_block) {	
-					fseek(file,MAX_TRANSFER*(block_n-1),SEEK_SET);
-					fwrite(pckt->data,1,pckt->data_len,file);
-					expected_block++;
-					if (pckt->data_len<MAX_TRANSFER){
-						expected_block=1;
-						fclose(file);
-						printf("Transfer complete!");
-					}
+				else {
+					char *ack_pkt;	
+					int size_ack = bake_ack_pkt(0,&ack_pkt);	
+					send_data(sockfd,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
+					printf("%i\n",strlen(pckt->data+2));
+					printf("WRQ to %s (mode %s)\ntransmission identifier %i\n",
+						file_name,mode,pckt->port);
+					receive_mode(sockfd,pckt->port,file);
 				}
-				char *ack_pkt;
-				int size_ack = bake_ack_pkt(block_n,&ack_pkt);	
-				send_data(sockfd,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
-			}	
+			}
         }
     }
 }
