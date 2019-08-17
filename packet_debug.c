@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "sockets.h"
 
 #define LINE_LEN 47
 
@@ -52,3 +53,15 @@ void print_pkt_data(char* pkt, int size) {
 		printf("%s",conv_to_hex(chr));
 	}
 }
+
+void display_packet(struct packet* pckt) {
+	printf("  Recieved packet:");
+	print_pkt_data(pckt->data,pckt->data_len);
+	printf(" from [%s,%i] (%li bytes)\n",
+				pckt->ip_addr,
+				pckt->port,
+				pckt->data_len
+				);
+}
+
+
