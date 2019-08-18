@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include "sockets.h"
+#include "sys/time.h"
 
 struct sockaddr_in* prep_address(char* ip_addr, int port) {
  
@@ -44,6 +45,12 @@ int send_data(int sockfd, char* ip_addr, int port, char* data, int size) {
 
 }
 
+int set_timeout(int sockfd, int timeout) {
+	struct timeval tv;
+	tv.tv_sec = 10;
+	tv.tv_usec = 0;
+	return setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv));
+}
 
 int receive(int sockfd, struct packet* pckt) {
     
