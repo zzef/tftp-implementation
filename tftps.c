@@ -9,7 +9,7 @@
 #include "tftp_utils.h" 
 
 char* PATH = "/home/zef/test_folder/";
-int server_timeout = 30;
+int server_timeout = 20;
 
 char get_error_code(char error_no) {
 	switch(error_no){
