@@ -16,14 +16,14 @@
 void display_help() {
 	printf("\n  Commands\n");
 	printf("  -----------------------------------------------\n");
-	printf("  1. put [file1] [file2] [file3]... [remote-host]\n");
-	printf("  2. get [remote-host] [file1] [file2] [file3]... \n");
-	printf("  3. mode [binary|ascii]\n");
-	printf("  4. rexmt [retransmission-timeout]\n");
-	printf("  5. timeout [transmission-timeout]\n");
-	printf("  6. verbose [on|off]\n");
-	printf("  7. help\n");
-	printf("  8. quit\n\n");
+	printf("  put [file1] [file2] [file3]... [remote-host]\n");
+	printf("  get [remote-host] [file1] [file2] [file3]... \n");
+	printf("  mode [binary|ascii]\n");
+	printf("  rexmt [retransmission-timeout]\n");
+	printf("  timeout [transmission-timeout]\n");
+	printf("  verbose [on|off]\n");
+	printf("  help\n");
+	printf("  quit\n\n");
 	
 }
 
@@ -67,7 +67,8 @@ int main(int argc, char** argv) {
 	int rexmt = 1;
 
 	while(1) {
-		printf("  tftp: ");
+		printf("  tftp: \n\033[A");
+		printf("\033[8C");
 		fgets(comms,INPUT_SIZE,stdin);
 		char ** token_list = malloc(100);
 		int len = tokenize(comms,&token_list);
