@@ -47,7 +47,7 @@ int send_data(int sockfd, char* ip_addr, int port, char* data, int size) {
 
 int set_timeout(int sockfd, int timeout) {
 	struct timeval tv;
-	tv.tv_sec = 10;
+	tv.tv_sec = timeout;
 	tv.tv_usec = 0;
 	return setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv));
 }
