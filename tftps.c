@@ -43,10 +43,9 @@ int main(int argc, char** argv) {
         printf("Socket bound!\n");
     }
     
-    printf("listening on port %i\n",TFTP_PORT);
 	struct packet* pckt = malloc(sizeof(struct packet));
-    while(1) {     
-
+    while(1) {
+	    printf("listening on port %i\n",TFTP_PORT);    
         if(receive(sockfd,pckt)<0) {
             printf("Failed to receive packet - %s\n",strerror(errno));
         }
