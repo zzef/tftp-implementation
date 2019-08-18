@@ -255,8 +255,12 @@ int receive_mode(int sockfd, int TID, FILE* file, int timeout) {
 	int expected_block=1;
 	int seek_block=0;
 	set_timeout(sockfd,timeout);
+	char hanging = 0;
 	while(1) {
 		if(receive(sockfd,pckt)<0) {
+			if (hanging) {
+				return 0;
+			}
 			return -1;
 		}
 		else {
@@ -273,15 +277,17 @@ int receive_mode(int sockfd, int TID, FILE* file, int timeout) {
 				if (block_n==expected_block) {	
 					fseek(file,MAX_TRANSFER*(seek_block),SEEK_SET);
 					fwrite(pckt->data+DATA_HEADER_SIZE,1,pckt->data_len-DATA_HEADER_SIZE,file);	
-					expected_block++;
-					expected_block = expected_block % 65535;
-					seek_block++;
+
 					if (pckt->data_len-DATA_HEADER_SIZE<MAX_TRANSFER){
 						fclose(file);	
 						printf("  Transfer complete!\n");
 						send_ack(sockfd,pckt->ip_addr,pckt->port,block_n);
-						return 0;
-					}	
+						hanging=1;
+						continue;
+					}
+					expected_block++;
+					expected_block = expected_block % 65535;
+					seek_block++;
 				}
 				send_ack(sockfd,pckt->ip_addr,pckt->port,block_n);
 			}
@@ -329,7 +335,7 @@ int transfer(int sockfd, char* remote_host, FILE* file,
 				return -1;
 			}
 			else {
-				printf("  retransmitting packets%i\n",timeouts);
+				printf("  retransmitting block %i try %i\n",T_BLOCK,timeouts);
 				timeouts++;
 			}
 		}
