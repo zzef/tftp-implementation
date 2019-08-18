@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
 	display_welcome();
 	char comms[INPUT_SIZE];
 	char* current_mode = BINARY;
-	int txmt = 10;
-	int rexmt = 1;
+	int txmt = 30;
+	int rexmt = 2;
 
 	while(1) {
 		printf("  tftp: \n\033[A");
@@ -89,7 +89,8 @@ int main(int argc, char** argv) {
 				
 					char* remote_host = token_list[len-1];
 					char* file_name = token_list[i];
-					
+				
+					printf("\n\n  %i: %s\n  ======================================================\n",i,file_name);	
 					printf("  Transferring %s to %s (mode %s)\n  retransmission timeout %i\n  transmission timeout %i\n",
 							file_name,remote_host,current_mode,rexmt,txmt);
 
@@ -99,12 +100,7 @@ int main(int argc, char** argv) {
 						printf("  Failed to bind to an address - %s\n",strerror(errno));
 						continue;
 					}
-					
-					if (request_host(sockfd,remote_host,file_name,'w',current_mode)<0) {
-						printf("  Failed to send request to host - %s\n",strerror(errno));
-						continue;
-					}
-						
+							
 					FILE* file = prepare_file("",file_name,current_mode,"r");
 					if (file==NULL) {
 						printf("  File Error - %s\n",strerror(errno));
@@ -114,7 +110,7 @@ int main(int argc, char** argv) {
 					int trans = transfer(sockfd,remote_host,file,file_name,
 									current_mode,rexmt,txmt);
 					if (trans==-1) {
-						printf("  Failed to get a response from host - %s\n%s\n",
+						printf("  Could not send to host %s - %s\n",
 								remote_host,strerror(errno));
 					}
 				}

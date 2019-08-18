@@ -9,6 +9,7 @@
 #include "tftp_utils.h" 
 
 char* PATH = "/home/zef/test_folder/";
+int server_timeout = 30;
 
 char get_error_code(char error_no) {
 	switch(error_no){
@@ -30,28 +31,28 @@ int main(int argc, char** argv) {
 
     int sockfd = socket(AF_INET,SOCK_DGRAM,0);  
     if (sockfd<0){
-        printf("Error: Failed to create socket - %s\n",strerror(errno));
+        printf("  Error: Failed to create socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        printf("Socket created\n");
+        printf("\n  Socket created\n");
     }
     
     if (bind_socket(sockfd,IP_ADDRESS,TFTP_PORT)<0) {
-        printf("Error: Failed to bind socket - %s\n",strerror(errno));
+        printf("  Error: Failed to bind socket - %s\n",strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        printf("Socket bound!\n");
+        printf("  Socket bound!\n");
     }
     
 	struct packet* pckt = malloc(sizeof(struct packet));
     while(1) {
-	    printf("listening on port %i\n",TFTP_PORT);    
+	    printf("  listening on port %i\n",TFTP_PORT);    
         if(receive(sockfd,pckt)<0) {
-            printf("Failed to receive packet - %s\n",strerror(errno));
+            printf("  Failed to receive packet - %s\n",strerror(errno));
         }
         else {
 			display_packet(pckt);
-			printf("---------------------------\n");			
+			printf("  ---------------------------\n");			
 			unsigned char* res = (unsigned char*) pckt->data;
 			if (*res=='\0'&&*(res+1)=='\2') {
 					
@@ -60,18 +61,28 @@ int main(int argc, char** argv) {
 				FILE* file = prepare_file(PATH,file_name,mode,"wx");
 	
 				if (file==NULL) {
-					printf("error with file\n");
+					printf("  error with file\n");
 					send_client_error(sockfd,pckt->ip_addr,pckt->port,get_error_code(errno));
 					continue;
 				}
 				else {
+					
+					u_int16_t TID;
+					int sockfd2 = bind_random(&TID);
+					if (sockfd2<0) {
+						printf("  Failed to bind to an address - %s\n",strerror(errno));
+						continue;
+					}
+
 					char *ack_pkt;	
 					int size_ack = bake_ack_pkt(0,&ack_pkt);	
-					send_data(sockfd,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
-					printf("%i\n",strlen(pckt->data+2));
-					printf("WRQ to %s (mode %s)\ntransmission identifier %i\n",
+					send_data(sockfd2,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
+					//printf("  %i\n",strlen(pckt->data+2));
+					printf("  WRQ to %s  (mode %s)\n  transmission identifier %i\n",
 						file_name,mode,pckt->port);
-					receive_mode(sockfd,pckt->port,file);
+					if (receive_mode(sockfd2,pckt->port,file,server_timeout)<0) {
+						printf("  Transfer failed - %s\n",strerror(errno));
+					}
 				}
 			}
         }
