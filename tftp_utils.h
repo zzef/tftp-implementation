@@ -61,6 +61,6 @@ char get_block(FILE* file, long file_size, int T_BLOCK,
 
 void send_client_error(int sockfd,char* ip_addr, int port, int error_no);
 
-int receive_mode(int sockfd, int TID, FILE* file);
+int receive_mode(int sockfd, int TID, FILE* file, int timeout);
 
  

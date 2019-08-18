@@ -212,7 +212,7 @@ void report_error(unsigned char* res) {
 	u_int16_t* casted = (u_int16_t*) res;
 	u_int16_t err_code = ntohs(*(casted+1));
 	char* error_msg = get_error_message((char)err_code);
-	printf("  Error[host] - %s\n",error_msg);
+	printf("  Error[host] - %s\n\n",error_msg);
 }
 
 void send_client_error(int sockfd,char* ip_addr, int port, int error_no) {
@@ -250,20 +250,21 @@ void send_ack(int sockfd, char* ip_addr, int port, long block_n) {
 	send_data(sockfd,ip_addr,port,ack_pkt,size_ack);
 }
 
-int receive_mode(int sockfd, int TID, FILE* file) {
+int receive_mode(int sockfd, int TID, FILE* file, int timeout) {
 	struct packet* pckt = malloc(sizeof(struct packet));
 	int expected_block=1;
 	int seek_block=0;
+	set_timeout(sockfd,timeout);
 	while(1) {
 		if(receive(sockfd,pckt)<0) {
-			printf("Failed to receive packet - %s\n",strerror(errno));
+			return -1;
 		}
 		else {
+			printf("  ----------------------------------------------------------\n");
 			display_packet(pckt);
 			unsigned char* res = (unsigned char*) pckt->data;
 			if (*res=='\0'&&*(res+1)=='\3') {
 				u_int16_t* blk = (u_int16_t*) (pckt->data)+1;	
-				printf("TID: %i\nPORT %i\n",TID,pckt->port);
 				if(pckt->port!=TID) {
 					send_client_error(sockfd,pckt->ip_addr,pckt->port,5);
 					continue;
@@ -277,7 +278,7 @@ int receive_mode(int sockfd, int TID, FILE* file) {
 					seek_block++;
 					if (pckt->data_len-DATA_HEADER_SIZE<MAX_TRANSFER){
 						fclose(file);	
-						printf("Transfer complete!");
+						printf("  Transfer complete!\n");
 						send_ack(sockfd,pckt->ip_addr,pckt->port,block_n);
 						return 0;
 					}	
@@ -287,6 +288,7 @@ int receive_mode(int sockfd, int TID, FILE* file) {
 		}
 	}	
 }
+
 int transfer(int sockfd, char* remote_host, FILE* file, 
 	char* file_name, char* mode, int rexmt, int txmt){
 	
@@ -301,10 +303,37 @@ int transfer(int sockfd, char* remote_host, FILE* file,
 	struct packet* pckt = malloc(sizeof(struct packet));
 	int host_TID;
 	int seek_block=0;
+	int timeouts=0;
+	set_timeout(sockfd,rexmt);
 
 	while(last==0) {
-		
-		if(receive(sockfd,pckt)>0) {
+		if (seek_block<1) {
+			if (request_host(sockfd,remote_host,file_name,'w',mode)<0) {
+				return -1;
+			}				
+		}
+		else {
+			last = get_block(file,f_size,seek_block-1,&data,&len);
+			int size_data = bake_data_pkt(data,len,T_BLOCK,&data_packet);
+			send_data(sockfd,remote_host,host_TID,data_packet,size_data);
+			printf("\n\n  transferring block %i (%lu bytes)\n",T_BLOCK,size_data);
+			printf("  -------------------------------------------------\n");
+			print_pkt_data(data_packet,size_data);
+			printf("\n  -------------------------------------------------\n");	
+		}
+		if(receive(sockfd,pckt)<0) {
+			if (errno!=EWOULDBLOCK && errno!=EAGAIN) {
+				return -1;
+			}
+			else if	(txmt<=(timeouts*rexmt)) {
+				return -1;
+			}
+			else {
+				printf("  retransmitting packets%i\n",timeouts);
+				timeouts++;
+			}
+		}
+		else {
 			display_packet(pckt);	
 			unsigned char* res = (unsigned char*) pckt->data;
 			if (*res=='\0' && *(res+1)=='\5') {
@@ -315,28 +344,17 @@ int transfer(int sockfd, char* remote_host, FILE* file,
 				u_int16_t* block = (u_int16_t*) (pckt->data)+1;
 				printf("  [ACK] -> block %i\n",ntohs(*block));
 				if (ntohs(*block)==T_BLOCK) {
-					if (T_BLOCK==0) {
+					if (seek_block==0) {
 						host_TID=pckt->port;
 					}
 					if (host_TID==pckt->port) {
 						T_BLOCK++;
-						T_BLOCK = T_BLOCK % 65535;
-						last = get_block(file,f_size,seek_block,&data,&len);
+						T_BLOCK = T_BLOCK % 65535;	
 						seek_block++;
-						int size_data = bake_data_pkt(data,len,T_BLOCK,&data_packet);
-						send_data(sockfd,remote_host,host_TID,data_packet,size_data);
-						printf("\n\n  transferring block %i (%lu bytes)\n",T_BLOCK,size_data);
-						printf("  -------------------------------------------------\n");
-						print_pkt_data(data_packet,size_data);
-						printf("\n  -------------------------------------------------\n");	
 					}
 				}
 			}
 		}
-		else {
-			return -1;
-		}
-
 	}
 
 	free(data);
