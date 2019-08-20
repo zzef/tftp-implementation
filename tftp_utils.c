@@ -276,15 +276,12 @@ int write_block(FILE* file, char* data, int length, u_int16_t block_n, long* exp
 	if (block_n==(*expected_block%65535)) {	
 		fseek(file,MAX_TRANSFER*(*expected_block-1),SEEK_SET);
 		fwrite(data+DATA_HEADER_SIZE,1,length-DATA_HEADER_SIZE,file);	
-		printf("writed\n");
 		if (length-DATA_HEADER_SIZE<MAX_TRANSFER){
 			fclose(file);	
 			printf("  Transfer complete!\n");
 			return 1;
 		} else {
-			printf("looooooool\n");
 			*expected_block=*expected_block+1;
-			printf("expected %i\n",*expected_block);
 		}
 	}
 	return 0;
@@ -344,7 +341,7 @@ int send_file(FILE* file,char* file_name, char* remote_host, int host_TID, int t
 		remote_host,strerror(errno));
 		return -1;
 	}
-
+	return 0;
 }
 
 
@@ -409,7 +406,8 @@ int transfer(int sockfd, char* remote_host, int host_TID, FILE* file,
 
 	free(data);
 	data=NULL;
-	printf("\n  Transfer Complete!\n\n");
+	printf("  Transfer Complete!\n\n");
+	return 0;
 
 }
 

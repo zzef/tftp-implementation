@@ -135,8 +135,8 @@ int main(int argc, char** argv) {
 								int res = receive_mode(sockfd2,pckt->port,file,SERVER_TIMEOUT,2);
 								if (res==-1) {
 									printf("  Error - %s\n",strerror(errno));
-									break;
 								}
+								break;
 							}
 						}
 					}
