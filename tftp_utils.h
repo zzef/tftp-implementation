@@ -10,6 +10,8 @@
 #define OP_ACK 4
 #define OP_ERROR 5
 #define MAX_TRIES 1000
+#define SERVER_TIMEOUT 25
+
 
 struct wrt_rq {
 	char* opcode;
@@ -53,7 +55,7 @@ int request_host(int sockfd, char* remote_host,
 
 FILE* prepare_file(char* dir, char* file_name, char* mode, char* method); 
 
-int transfer(int sockfd, char* remote_host, FILE* file, 
+int transfer(int sockfd, char* remote_host, int host_TID, FILE* file, 
 	char* file_name, char* mode, int rexmt, int txmt);
 
 char get_block(FILE* file, long file_size, int T_BLOCK, 
@@ -61,6 +63,18 @@ char get_block(FILE* file, long file_size, int T_BLOCK,
 
 void send_client_error(int sockfd,char* ip_addr, int port, int error_no);
 
-int receive_mode(int sockfd, int TID, FILE* file, int timeout);
+int receive_mode(int sockfd, int TID, FILE* file, int timeout, long start_block);
+
+int send_file(FILE* file, char* file_name, char* remote_host, int host_TID, int txmt, int rexmt, char* mode);
+
+int receive_file(FILE* file, char* file_name, char* client_ip, int client_tid, char* mode); 
+
+int write_block(FILE* file, char* data, int length, u_int16_t block_n, long* expected_block);
+
+void send_ack(int sockfd, char* ip_addr, int port, long block_n);
+
+
+
+
 
  
