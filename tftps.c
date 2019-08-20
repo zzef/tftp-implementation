@@ -9,7 +9,6 @@
 #include "tftp_utils.h" 
 
 char* PATH = "/home/zef/test_folder/";
-int server_timeout = 20;
 
 char get_error_code(char error_no) {
 	switch(error_no){
@@ -43,7 +42,8 @@ int main(int argc, char** argv) {
     } else {
         printf("  Socket bound!\n");
     }
-    
+    int txmt = 30;
+	int rexmt = 2;
 	struct packet* pckt = malloc(sizeof(struct packet));
     while(1) {
 	    printf("  listening on port %i\n",TFTP_PORT);    
@@ -54,35 +54,36 @@ int main(int argc, char** argv) {
 			display_packet(pckt);
 			printf("  ---------------------------\n");			
 			unsigned char* res = (unsigned char*) pckt->data;
-			if (*res=='\0'&&*(res+1)=='\2') {
-					
-				file_name = (pckt->data)+2;
-				mode = (pckt->data)+strlen(pckt->data+2)+3;
-				FILE* file = prepare_file(PATH,file_name,mode,"wx");
-	
+			if (*res=='\0'&&*(res+1)=='\1') {
+				char* remote_host = pckt->ip_addr;
+				char* file_name = (pckt->data)+2;
+				char* current_mode = (pckt->data)+2+strlen(file_name)+1;
+				FILE* file = prepare_file(PATH,file_name,current_mode,"r");
+				printf("  %s has requested %s mode %s\n",remote_host,file_name,current_mode);
 				if (file==NULL) {
-					printf("  error with file\n");
+					printf("  File Error %s\n",strerror(errno));
 					send_client_error(sockfd,pckt->ip_addr,pckt->port,get_error_code(errno));
 					continue;
 				}
-				else {
-					
-					u_int16_t TID;
-					int sockfd2 = bind_random(&TID);
-					if (sockfd2<0) {
-						printf("  Failed to bind to an address - %s\n",strerror(errno));
-						continue;
-					}
+				if (send_file(file,file_name,pckt->ip_addr,pckt->port,txmt,rexmt,current_mode)<0) {
+					printf("  Error - %s\n",strerror(errno));
+					send_client_error(sockfd,pckt->ip_addr,pckt->port,get_error_code(errno));
+				}
 
-					char *ack_pkt;	
-					int size_ack = bake_ack_pkt(0,&ack_pkt);	
-					send_data(sockfd2,pckt->ip_addr,pckt->port,ack_pkt,size_ack);
-					//printf("  %i\n",strlen(pckt->data+2));
-					printf("  WRQ to %s  (mode %s)\n  transmission identifier %i\n",
-						file_name,mode,pckt->port);
-					if (receive_mode(sockfd2,pckt->port,file,server_timeout)<0) {
-						printf("  Transfer failed - %s\n",strerror(errno));
-					}
+			}
+			else if (*res=='\0'&&*(res+1)=='\2') {
+					
+				file_name = (pckt->data)+2;
+				mode = (pckt->data)+strlen(pckt->data+2)+3;
+				FILE* file = prepare_file(PATH,file_name,mode,"wx");	
+				
+				if (file==NULL) {
+					printf("  File Error - %s\n",strerror(errno));
+					send_client_error(sockfd,pckt->ip_addr,pckt->port,get_error_code(errno));
+					continue;
+				}
+				if (receive_file(file,file_name,pckt->ip_addr,pckt->port,mode)<0) {
+					printf("  Error - %s\n",strerror(errno));
 				}
 			}
         }
