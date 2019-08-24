@@ -28,13 +28,11 @@ char to_hex(char h){
 	
 }
 
-char* conv_to_hex(char chr) {
+char* print_hex_string(char chr) {
 	char l4_bits = (chr >> 4) & ((1 << 4)-1);
 	char r4_bits = chr & ((1 << 4)-1);
 	char hex[] ={'\\','x',to_hex(l4_bits),to_hex(r4_bits),'\0'};
-	char* hx = malloc(4);
-	memcpy(hx,hex,4);
-	return hx;
+	printf("%s",hex);
 	//need to create string from this 
 }
 
@@ -50,7 +48,7 @@ void print_pkt_data(char* pkt, int size) {
 			printf("%c",chr);
 			continue;
 		}
-		printf("%s",conv_to_hex(chr));
+		print_hex_string(chr);
 	}
 }
 

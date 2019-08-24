@@ -1,8 +1,8 @@
 all: tftp-client tftp-server
 tftp-client: tftpc.c sockets.o tftp_utils.o packet_debug.o
-	gcc -o tftp-client tftpc.c sockets.o tftp_utils.o packet_debug.o
+	gcc -g -o tftp-client tftpc.c sockets.o tftp_utils.o packet_debug.o
 tftp-server: tftps.c sockets.o tftp_utils.o packet_debug.o
-	gcc -o tftp-server tftps.c sockets.o tftp_utils.o packet_debug.o
+	gcc -g -o tftp-server tftps.c sockets.o tftp_utils.o packet_debug.o
 packet_debug.o: packet_debug.h packet_debug.c
 	gcc -c -g packet_debug.c
 tftp_utils.o: tftp_utils.h tftp_utils.c sockets.o

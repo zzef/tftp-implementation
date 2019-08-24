@@ -23,25 +23,34 @@ struct sockaddr_in* prep_address(char* ip_addr, int port) {
     address->sin_family=AF_INET;
     address->sin_port=htons(port);
     address->sin_addr=*addr;
-    
+    free(addr);
+	addr=NULL;
 	return address;
 
+}
+
+int destroy_address(struct sockaddr_in* address) {
+	free(address);
+	address=NULL;
 }
 
 int bind_socket(int sockfd, char* ip_addr, int port) {
     
    	struct sockaddr_in* address = prep_address(ip_addr, port);
-    return bind(sockfd, (const struct sockaddr*) address, sizeof(*address));
-    
+    int bound = bind(sockfd, (const struct sockaddr*) address, sizeof(*address));
+    destroy_address(address);
+	return bound;
 }
-
 
 int send_data(int sockfd, char* ip_addr, int port, char* data, int size) {
 
 	const struct sockaddr* address = (struct sockaddr*) prep_address(ip_addr,port); 
-	return sendto(sockfd,(const void*) data, size,0,
-					address,sizeof(*address)
-					);
+	int sent = sendto(sockfd,(const void*) data, size,0,
+					address,sizeof(*address));
+	free(data);
+	data=NULL;
+	destroy_address((struct sockaddr_in*)address);
+	return sent;
 
 }
 
@@ -65,10 +74,14 @@ int receive(int sockfd, struct packet* pckt) {
         );
         
         if(recv_size<0) {
+			free(sender_address);
+			free(packet_buffer);
+			packet_buffer=NULL;
             return recv_size;
         }
-        
-        char* sender_ip_addr = inet_ntoa(sender_address->sin_addr);
+        char* ip_address = inet_ntoa(sender_address->sin_addr);
+        char* sender_ip_addr = calloc(strlen(ip_address)+1,sizeof(char));
+		memcpy(sender_ip_addr,ip_address,strlen(ip_address));
         int port = sender_address->sin_port;
         
         pckt->port=ntohs(port);
@@ -76,5 +89,22 @@ int receive(int sockfd, struct packet* pckt) {
         pckt->data=packet_buffer;
         pckt->data_len=recv_size;
         
+		free(sender_address);
+		sender_address=NULL;
         return recv_size;
 }
+
+int destroy_packet(struct packet* pckt) {	
+
+	if (pckt->ip_addr) {
+		free(pckt->ip_addr);
+		pckt->ip_addr=NULL;
+	}
+	if (pckt->data) {
+		free(pckt->data);
+		pckt->data=NULL;
+	}
+	free(pckt);
+	pckt=NULL;
+}
+

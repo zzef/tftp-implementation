@@ -10,14 +10,8 @@
 #define OP_ACK 4
 #define OP_ERROR 5
 #define MAX_TRIES 1000
-#define SERVER_TIMEOUT 25
+#define SERVER_TIMEOUT 1
 
-
-struct wrt_rq {
-	char* opcode;
-	char* file_name;
-	char* mode;
-};
 
 int bake_rq_pkt(const char rq, 
 						const char* file_name, 
